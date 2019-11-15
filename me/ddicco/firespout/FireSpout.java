@@ -6,38 +6,35 @@ import org.bukkit.entity.Player;
 import com.projectkorra.projectkorra.ProjectKorra;
 import com.projectkorra.projectkorra.ability.AddonAbility;
 import com.projectkorra.projectkorra.ability.FireAbility;
-
+import com.projectkorra.projectkorra.util.ParticleEffect;
 
 public class FireSpout extends FireAbility implements AddonAbility {
-	private Location location;
-	private long time;
 	
-    public FireSpout(Player player) {
+	private long duration;
+	private long cooldown;
+	private long currenttime;
+	
+	public FireSpout(Player player) {
 		super(player);
-		if (!bPlayer.canBend(getAbility("FireJet"))) {
-			return;
-		}
+		// TODO Auto-generated constructor stub
 		
-		time = System.currentTimeMillis();
-		bPlayer.addCooldown(getAbility("FireJet"), getCooldown());
+		if(bPlayer.isOnCooldown("FireJet"));
+		
+		bPlayer.addCooldown("FireJet", cooldown);
+		
 		setFields();
-		
 		start();
-		
 	}
-	
-	public void setFields() {
-		player.getAllowFlight();
-		player.isFlying();
-		location = player.getLocation();
-		player.setAllowFlight(true);
-		player.setFlying(true);
-	}
-	
+
 	@Override
 	public long getCooldown() {
 		// TODO Auto-generated method stub
-		return 5000;
+		return 10000;
+	}
+	
+	public void setFields() {
+		duration = 5000;
+		currenttime = System.currentTimeMillis();
 	}
 
 	@Override
@@ -45,7 +42,7 @@ public class FireSpout extends FireAbility implements AddonAbility {
 		// TODO Auto-generated method stub
 		return player.getLocation();
 	}
-	
+
 	@Override
 	public String getName() {
 		// TODO Auto-generated method stub
@@ -60,32 +57,39 @@ public class FireSpout extends FireAbility implements AddonAbility {
 	@Override
 	public boolean isHarmlessAbility() {
 		// TODO Auto-generated method stub
-		return true;
+		return false;
 	}
 
 	@Override
 	public boolean isSneakAbility() {
 		// TODO Auto-generated method stub
-		return true;
+		return false;
 	}
 
 	@Override
 	public void progress() {
+		// TODO Auto-generated method stub
+		
+		if(!bPlayer.canBend(this)) {
+			remove();
+			return;
+		}
+		
 		if(player.isDead() || !player.isOnline()) {
 			remove();
 			return;
 		}
 		
-		location = player.getLocation();
 		player.setAllowFlight(true);
 		player.setFlying(true);
-		playFirebendingParticles(location, 1, 0.2F, 0.2F, 0.2F);
-		if(System.currentTimeMillis() > time + 5000) {
-			player.setAllowFlight(false);
-			player.setFlying(false);
+		
+		ParticleEffect.FLAME.display(getLocation(), 0F, 0F, 0F, 0.2F, 2);
+		
+		if(System.currentTimeMillis() > currenttime + duration) {
 			remove();
 			return;
 		}
+		
 	}
 
 	@Override
@@ -97,24 +101,20 @@ public class FireSpout extends FireAbility implements AddonAbility {
 	@Override
 	public String getVersion() {
 		// TODO Auto-generated method stub
-		return "1.5";
+		return "0.0.1";
 	}
 
 	@Override
 	public void load() {
 		// TODO Auto-generated method stub
-		 ProjectKorra.plugin.getServer().getPluginManager().registerEvents(new FireSpoutListener(), ProjectKorra.plugin);
-		 
-		 ProjectKorra.log.info("Successfully enabled " + getName() + " by " + getAuthor());
-
+		ProjectKorra.log.info("Successfully enabled " + getName() + " by " + getAuthor() + " Version " + getVersion());
+		ProjectKorra.plugin.getServer().getPluginManager().registerEvents(new FireSpoutListener(), ProjectKorra.plugin);
 	}
 
 	@Override
 	public void stop() {
 		// TODO Auto-generated method stub
-		 ProjectKorra.log.info("Successfully disabled " + getName() + " by " + getAuthor());
-		 
-		 super.remove();
+		
 	}
 
 }
